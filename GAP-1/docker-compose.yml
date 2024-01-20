@@ -16,11 +16,14 @@ services:
       - default
 
   db:
-    image: postgres
+    image: postgres:14.1
     container_name: postgres
-    restart: always
     ports:
       - 6134:5134
+      - 9187:9187
+    volumes:
+      - './postgres_exporter.service:/etc/systemd/system/postgres_exporter.service'
+      - './postgres_exporter.env:/opt/postgres_exporter/postgres_exporter.env'
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: pass

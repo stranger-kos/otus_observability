@@ -45,7 +45,7 @@ scrape_configs:
   - job_name: 'postgres'
     static_configs:
       - targets: 
-        - host.docker.internal:9323
+        - db:9187
   
   - job_name: 'node_exporter'
     static_configs:
