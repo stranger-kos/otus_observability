@@ -84,10 +84,11 @@ services:
 
   thanos-sidecar:
     image: quay.io/thanos/thanos:v0.31.0
+    container_name: thanos-sidecar
     volumes:
       - ./thanos/:/etc/thanos/
       - ./prometheus_data:/prometheus
-      - './thanos/bucket_config.yml:/etc/thanos/bucket_config.yml'
+      - ./thanos/bucket_config.yml:/etc/thanos/bucket_config.yml
     command:
       - 'sidecar'
       - '--tsdb.path=/prometheus'
@@ -97,6 +98,46 @@ services:
       - '--objstore.config-file=/etc/thanos/bucket_config.yml'
     depends_on:
       - prometheus
+      - minio
+    restart: always
+    networks:
+      - default
+
+  thanos-query:
+    image: quay.io/thanos/thanos:v0.31.0
+    container_name: thanos-query
+    volumes:
+      - './thanos/bucket_config.yml:/etc/thanos/bucket_config.yml'
+    command:
+      - 'query'
+      - '--grpc-address=0.0.0.0:10091'
+      - '--http-address=0.0.0.0:10902'
+      - '--query.replica-label=prod'
+      - '--store=thanos-sidecar:10901'
+      - '--store=thanos-store-gateway:10091'
+      - '--store=thanos-ruler:10091'
+    ports:
+      - 10902:10902
+    depends_on:
+      - thanos-sidecar
+    restart: always
+    networks:
+      - default
+
+  thanos-store-gateway:
+    image: quay.io/thanos/thanos:v0.31.0
+    container_name: thanos-store-gateway
+    volumes:
+      - ./thanos/:/etc/thanos/
+      - ./thanos_store:/tmp/thanos/store
+      - './thanos/bucket_config.yml:/etc/thanos/bucket_config.yml'
+    command:
+      - 'store'
+      - '--grpc-address=thanos-store-gateway:10091'
+      - '--http-address=thanos-store-gateway:10092'
+      - '--data-dir=/tmp/thanos/store'
+      - '--objstore.config-file=/etc/thanos/bucket_config.yml'
+    depends_on:
       - minio
     restart: always
     networks:
