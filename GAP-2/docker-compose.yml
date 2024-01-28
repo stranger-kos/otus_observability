@@ -158,6 +158,24 @@ services:
     networks:
       - default
 
+  thanos-compactor:
+    image: quay.io/thanos/thanos:v0.31.0
+    container_name: thanos-compactor
+    volumes:
+      - ./thanos/:/etc/thanos/
+      - './thanos/bucket_config.yml:/etc/thanos/bucket_config.yml'
+    command:
+      - 'compact'
+      - '--log.level=debug'
+      - '--data-dir=/data'
+      - '--objstore.config-file=/etc/thanos/bucket_config.yml'
+      - '--wait'
+    depends_on:
+      - minio
+    restart: always
+    networks:
+      - default
+
   minio:
     image: minio/minio
     container_name: minio
