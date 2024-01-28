@@ -170,6 +170,9 @@ services:
       - '--data-dir=/data'
       - '--objstore.config-file=/etc/thanos/bucket_config.yml'
       - '--wait'
+      - '--retention.resolution-raw=14d'
+      - '--retention.resolution-5m=14d'
+      - '--retention.resolution-1h=14d'
     depends_on:
       - minio
     restart: always
@@ -189,6 +192,7 @@ services:
       - MINIO_PROMETHEUS_AUTH_TYPE=public
     ports:
       - 9000:9000
+      - 9091:9090
     networks:
       - default
 
